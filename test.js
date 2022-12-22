@@ -1,40 +1,42 @@
-const reindeerTypes2 = [
-  { type: 'Nuclear', weightCapacity: 50 },
-  { type: 'Electric', weightCapacity: 10 },
-  { type: 'Gasoline', weightCapacity: 5 },
-  { type: 'Diesel', weightCapacity: 1 }
-]
-
-const gifts2 = [
-  { country: 'Spain', weight: 30 },
-  { country: 'France', weight: 17 },
-  { country: 'Italy', weight: 50 }
-]
-
-// [{
-//   country: 'Spain',
-//   reindeers: [
-//     { type: 'Electric', num: 1 },
-//     { type: 'Gasoline', num: 3 },
-//     { type: 'Diesel', num: 5 }
-//   ]
-// }, {
 const howManyReindeers = (reindeerTypes, gifts) => {
+  reindeerTypes = reindeerTypes.sort((a, b) => b.weightCapacity - a.weightCapacity)
   return gifts.map(({country, weight}) => {
-    let reindeers = []
-    // do  {
-      let weightLeft = weight
-      reindeers = reindeerTypes.map(({type, weightCapacity}, index) => {
-        let num = Math.floor(weightLeft / weightCapacity)
-        weightLeft = weightLeft % weightCapacity
-        return {type, num}
-      }).filter(({num}) => num > 0)
-    // } while (!!reindeers.reduce((acc, {num}) => acc && acc < num ? num : false))
+    let reindeers = JSON.parse(JSON.stringify(reindeerTypes))
+    do {
+      let weightLeft = weight, check = false
+      reindeers = reindeers.map(({type, weightCapacity, num}, index) => {
+        if(num !== undefined) {
+          if(index < reindeers.length - 1 && num > reindeers[index + 1].num) {
+            num -= 1
+            check = true
+          } else if(check){
+            num = Math.floor(weightLeft / weightCapacity)
+          }
+        } else {
+          num = Math.floor(weightLeft / weightCapacity)
+        }
+        if(index !== reindeers.length - 1 && weightLeft === num * weightCapacity && weightLeft > 0) {
+          num -= 1
+        }
+        weightLeft = weightLeft - num * weightCapacity
+        return {type, num, weightCapacity}
+      })
+    } while (!reindeers.reduce((acc, {num}) => acc !== false && acc <= num ? num : false, 0))
     return {
       country,
-      reindeers
+      reindeers: reindeers.map(({type, num}) => ({type, num})).filter(({num}) => num > 0)
     }
   })
 }
 
-console.log(howManyReindeers(reindeerTypes2, gifts2).map(({country, reindeers}) => reindeers))
+console.log(
+  howManyReindeers(
+    [
+      { type: 'Diesel', weightCapacity: 1 },
+      { type: 'Gasoline', weightCapacity: 8 }
+    ],
+    [
+      { country: 'Colombia', weight: 50 },
+      { country: 'España', weight: 20 }
+    ])
+.map(({country, reindeers}) => reindeers))
